@@ -3,16 +3,21 @@ package com.amr.chatservice.controller;
 import com.amr.chatservice.model.ChatMessage;
 import com.amr.chatservice.model.ChatNotification;
 import com.amr.chatservice.model.MessageStatus;
+import com.amr.chatservice.model.User;
+import com.amr.chatservice.response.ResponseDto;
 import com.amr.chatservice.service.ChatMessageService;
 import com.amr.chatservice.service.ChatRoomService;
 
+import com.amr.chatservice.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -26,6 +31,7 @@ public class ChatController {
     @Autowired private SimpMessagingTemplate messagingTemplate;
     @Autowired private ChatMessageService chatMessageService;
     @Autowired private ChatRoomService chatRoomService;
+    @Autowired private UserService userService;
 
     @MessageMapping("/chat")
     public void processMessage(@Payload ChatMessage chatMessage) {
@@ -40,6 +46,21 @@ public class ChatController {
                         saved.getId(),
                         saved.getSenderId(),
                         saved.getSenderName()));
+    }
+
+    @MessageMapping("/users/status/{id}/{status}")
+    private void changeStatus(@DestinationVariable  long id, @DestinationVariable int status) {
+        User user = null;
+        try {
+            user = userService.changeStatus(id, status);
+            messagingTemplate.convertAndSendToUser("3",
+                    "change/status",
+                    user
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     @GetMapping("/messages/{senderId}/{recipientId}/count")

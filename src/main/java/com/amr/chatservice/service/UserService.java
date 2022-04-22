@@ -49,4 +49,12 @@ public class UserService {
 		
 		return u;
 	}
+
+    public User changeStatus(long id, int status) throws Exception {
+		User u =  userRepository.findById(id).orElseThrow(() -> new Exception("User is not exist!"));
+
+		u.setOnline(status == 1);
+		userRepository.save(u);
+		return u;
+	}
 }
