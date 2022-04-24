@@ -17,7 +17,7 @@ public class ChatRoomService {
     	
     	Optional<ChatRoom> chatRoom = chatRoomRepository
                 .findBySenderIdAndRecipientId(senderId, recipientId);
-    	
+
     	if(chatRoom.isPresent()) {
     		return Optional.of(chatRoom.get().getChatId());
     	} else {

@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +42,7 @@ public class ChatController {
 
         ChatMessage saved = chatMessageService.save(chatMessage);
         messagingTemplate.convertAndSendToUser(
-                chatMessage.getRecipientId(),"/queue/messages",
+                chatMessage.getRecipientId(),"/messages",
                 new ChatNotification(
                         saved.getId(),
                         saved.getSenderId(),
@@ -49,18 +50,16 @@ public class ChatController {
     }
 
     @MessageMapping("/users/status/{id}/{status}")
-    private void changeStatus(@DestinationVariable  long id, @DestinationVariable int status) {
+    @SendTo("/user/status")
+    private User changeStatus(@DestinationVariable  long id, @DestinationVariable int status) {
         User user = null;
         try {
             user = userService.changeStatus(id, status);
-            messagingTemplate.convertAndSendToUser("3",
-                    "change/status",
-                    user
-            );
+            return user;
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        return null;
     }
 
     @GetMapping("/messages/{senderId}/{recipientId}/count")
@@ -96,4 +95,5 @@ public class ChatController {
     	long times;
     	ChatMessage lastMessage;
     }
+
 }
