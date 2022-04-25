@@ -1,6 +1,7 @@
 package com.amr.chatservice.controller.chat;
 
 import com.amr.chatservice.model.ChatNotification;
+import com.amr.chatservice.model.TypingNotification;
 import com.amr.chatservice.model.User;
 import com.amr.chatservice.service.ChatMessageService;
 import com.amr.chatservice.service.ChatRoomService;
@@ -25,6 +26,14 @@ public class ChatSocket {
         messagingTemplate.convertAndSendToUser(
                 chatNotification.getRecipientId() + "","/messages",
                 chatNotification
+        );
+    }
+
+    @MessageMapping("/chat/typing")
+    public void messageTyping(@Payload TypingNotification typingNotification) {
+        messagingTemplate.convertAndSendToUser(
+                typingNotification.getRecipientId() + "","/messages/typing",
+                typingNotification
         );
     }
 
