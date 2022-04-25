@@ -4,7 +4,9 @@ import com.amr.chatservice.model.ChatMessage;
 import com.amr.chatservice.response.ResponseDto;
 import com.amr.chatservice.service.ChatMessageService;
 import com.amr.chatservice.service.ChatRoomService;
+import com.amr.chatservice.service.upload.FileUploadService;
 import com.amr.chatservice.utils.Constant;
+import javassist.NotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("messages")
@@ -19,6 +27,7 @@ public class ChatController {
 
     @Autowired private ChatMessageService chatMessageService;
     @Autowired private ChatRoomService chatRoomService;
+    @Autowired private FileUploadService storageService;
 
     @PostMapping("/save")
     public  ResponseEntity<?> saveMessage(@RequestBody ChatMessage chatMessage) {
@@ -38,6 +47,17 @@ public class ChatController {
             return new ResponseEntity<>(new ResponseDto(400, saved), HttpStatus.BAD_REQUEST);
         }
 
+    }
+
+    @PostMapping("/upload-file")
+    public ResponseEntity<?> uploadFile(@RequestParam("files") MultipartFile[] files, HttpServletRequest httpServletRequest)  {
+        List<String> filePaths = new ArrayList<String>();
+        for(MultipartFile file : files) {
+            String rootPath = httpServletRequest.getServletContext().getRealPath("/");
+            filePaths.add(rootPath + storageService.saveAndReturnPath(file));
+        }
+
+        return ResponseEntity.ok(filePaths);
     }
 
     @GetMapping("/status/change/{id}/{status}")

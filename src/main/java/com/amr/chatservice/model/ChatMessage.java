@@ -32,7 +32,12 @@ public class ChatMessage {
    @org.hibernate.annotations.CollectionId(columns = @Column(name = "id"),
            type = @org.hibernate.annotations.Type(type = "long"), generator = "my_increment")
    private List<String> images;
-//   private List<String> files;
+
+   @ElementCollection
+   @CollectionTable(name = "chat_files")
+   @org.hibernate.annotations.CollectionId(columns = @Column(name = "id"),
+           type = @org.hibernate.annotations.Type(type = "long"), generator = "my_increment")
+   private List<String> files;
    private Date timestamp;
    private String status;
 
