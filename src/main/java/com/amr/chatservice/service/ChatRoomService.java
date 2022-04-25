@@ -13,7 +13,7 @@ public class ChatRoomService {
     @Autowired private ChatRoomRepository chatRoomRepository;
 
     public Optional<String> getChatId(
-            String senderId, String recipientId) {
+            Long senderId, Long recipientId) {
     	
     	Optional<ChatRoom> chatRoom = chatRoomRepository
                 .findBySenderIdAndRecipientId(senderId, recipientId);

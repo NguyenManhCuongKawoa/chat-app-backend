@@ -2,14 +2,13 @@ package com.amr.chatservice.service;
 
 import com.amr.chatservice.exception.ResourceNotFoundException;
 import com.amr.chatservice.model.ChatMessage;
-import com.amr.chatservice.model.MessageStatus;
 import com.amr.chatservice.repository.ChatMessageRepository;
 
+import com.amr.chatservice.utils.Constant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,20 +18,19 @@ public class ChatMessageService {
     @Autowired private ChatRoomService chatRoomService;
 
     public ChatMessage save(ChatMessage chatMessage) {
-        chatMessage.setStatus(MessageStatus.RECEIVED);
+//        chatMessage.setStatus( Constant.MESSAGE_RECEIVED);
         repository.save(chatMessage);
         return chatMessage;
     }
 
-    public long countNewMessages(String senderId, String recipientId) {
+    public long countNewMessages(Long senderId, Long recipientId) {
         return repository.countBySenderIdAndRecipientIdAndStatus(
-                senderId, recipientId, MessageStatus.RECEIVED);
+                senderId, recipientId, Constant.MESSAGE_RECEIVED);
     }
     
-    public ChatMessage getLastMessage(String senderId, String recipientId) {
+    public ChatMessage getLastMessage(Long senderId, Long recipientId) {
 
-		Optional<String> chatId = chatRoomService.getChatId(
-                senderId, recipientId);
+		Optional<String> chatId = chatRoomService.getChatId(senderId, recipientId);
 		if(chatId.isPresent()) {
 			List<ChatMessage> chats = repository.findByChatId(chatId.get());
 	    	
@@ -46,17 +44,21 @@ public class ChatMessageService {
     	
     }
 
-    public List<ChatMessage> findChatMessages(String senderId, String recipientId) {
+    public List<ChatMessage> findChatMessages(Long senderId, Long recipientId) {
         var chatId = chatRoomService.getChatId(senderId, recipientId);
 
         var messages =
                 chatId.map(cId -> repository.findByChatId(cId)).orElse(new ArrayList<>());
 
         if(messages.size() > 0) {
-        	messages.forEach(chat -> {
-        		chat.setStatus(MessageStatus.DELIVERED);
-        		repository.save(chat);
-        	});
+            ChatMessage lastChatMessage = messages.get(messages.size() - 1);
+            if(lastChatMessage.getRecipientId() == senderId) {
+                messages.stream().filter(m -> m.getStatus() != Constant.MESSAGE_ERROR);
+                messages.forEach(chat -> {
+                    chat.setStatus(Constant.MESSAGE_DELIVERED);
+                    repository.save(chat);
+                });
+            }
         }
 
         return messages;
@@ -66,14 +68,14 @@ public class ChatMessageService {
         return repository
                 .findById(id)
                 .map(chatMessage -> {
-                    chatMessage.setStatus(MessageStatus.DELIVERED);
+                    chatMessage.setStatus(Constant.MESSAGE_DELIVERED);
                     return repository.save(chatMessage);
                 })
                 .orElseThrow(() ->
                         new ResourceNotFoundException("can't find message (" + id + ")"));
     }
 
-    public void updateStatuses(String senderId, String recipientId, MessageStatus status) {
+    public void updateStatuses(Long senderId, Long recipientId, String status) {
     	List<ChatMessage> chats = repository.findBySenderIdAndRecipientId(senderId, recipientId);
     	
     	chats.forEach(chat -> {

@@ -1,7 +1,6 @@
 package com.amr.chatservice.repository;
 
 import com.amr.chatservice.model.ChatMessage;
-import com.amr.chatservice.model.MessageStatus;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,12 +10,12 @@ public interface ChatMessageRepository
         extends JpaRepository<ChatMessage, Long> {
 
     long countBySenderIdAndRecipientIdAndStatus(
-            String senderId, String recipientId, MessageStatus status);
+            Long senderId, Long recipientId, String status);
     
     List<ChatMessage> findBySenderIdAndRecipientIdAndStatus(
-    		 String senderId, String recipientId, MessageStatus status);
+            Long senderId, Long recipientId, String status);
 
     List<ChatMessage> findByChatId(String chatId);
     
-    List<ChatMessage> findBySenderIdAndRecipientId(String senderId, String recipientId);
+    List<ChatMessage> findBySenderIdAndRecipientId(Long senderId, Long recipientId);
 }

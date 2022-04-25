@@ -4,32 +4,36 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
+
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
+@GenericGenerator(name="my_increment", strategy = "increment")
 public class ChatMessage {
    @Id
    @GeneratedValue(strategy = GenerationType.IDENTITY)
    private Long id;
    private String chatId;
-   private String senderId;
-   private String recipientId;
+   private Long senderId;
+   private Long recipientId;
    private String senderName;
    private String recipientName;
-   private String content;
+   private String text;
+   @ElementCollection
+   @CollectionTable(name = "chat_images")
+   @org.hibernate.annotations.CollectionId(columns = @Column(name = "id"),
+           type = @org.hibernate.annotations.Type(type = "long"), generator = "my_increment")
+   private List<String> images;
+//   private List<String> files;
    private Date timestamp;
-   private MessageStatus status;
-   
-//   @OneToMany
-//   private List<String> imagesUrl;
+   private String status;
+
 }
